@@ -1,3 +1,7 @@
+# https://discordpy.readthedocs.io/en/latest/api.html?highlight=change%20nickname#discord.Permissions.change_nickname
+# https://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions.manage_roles
+# https://discordpy.readthedocs.io/en/latest/api.html#discord.Guild.get_member
+
 import csv
 import discord
 from discord.ext import commands
@@ -33,9 +37,6 @@ def set_globvar():
     global member_check  # Needed to modify global copy of globvar
     global seat_number
     global screen_name
-    member_check = ""
-    seat_number = 0
-    screen_name = ''
 
 
 class MyClient(discord.Client):
@@ -59,22 +60,17 @@ async def on_message(message):
     if message.content.startswith('$hello'):
         await message.channel.send('Hello! ' + str(message.author))
 
-    elif message.content.startswith('!members'):
+    if message.content.startswith('!!'):
         x = message.guild.members
         for member in x:
-            print(member)
+            if member.name == screen_name:
+                print(str(seat_number) + ':' + member.name)
+                print(member.roles)
+                print(member.guild_permissions)
+                print(member.nick)
+                await member.edit(nick='boom')
+                role = discord.utils.get(member.guild.roles, name="moved")
+                await member.add_roles(role)
 
 
 client.run(TOKEN)
-
-while True:
-    BarC = int(input(''))
-    New_Name = (pull_csv(BarC))
-    real_name = New_Name[0]
-    screen_name = New_Name[1]
-    seat_number = New_Name[2]
-    print(seat_number + ':' + screen_name)
-
-# https://discordpy.readthedocs.io/en/latest/api.html?highlight=change%20nickname#discord.Permissions.change_nickname
-# https://discordpy.readthedocs.io/en/latest/api.html#discord.Permissions.manage_roles
-# https://discordpy.readthedocs.io/en/latest/api.html#discord.Guild.get_member

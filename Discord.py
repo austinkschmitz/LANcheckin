@@ -86,7 +86,7 @@ async def on_message(message):
         for member in server:
             if member.name == screen_name:
                 await member.edit(nick=(seat_number + ":" + str(screen_name)))  # Editing Nick name for the server
-                role = discord.utils.get(member.guild.roles, name=globals()['New_Role'])   # Role to be added for specific channel name="moved"
+                role = discord.utils.get(member.guild.roles, name=(globals()['New_Role']))   # name="moved"
                 await member.add_roles(role)
                 await channel_out.send("@here  Welcome to the Party {0}! You sit at {1}.".format(str(screen_name), str(seat_number)))
 

@@ -3,8 +3,8 @@
 # https://discordpy.readthedocs.io/en/latest/api.html#discord.Guild.get_member
 
 # TODO:
-#   Message Everyone that varuser checkedin in new channel
-#   Combine Barcode to discord
+#   Create dynamic variables for packaging.
+
 
 import csv
 import discord
@@ -29,16 +29,6 @@ def pull_csv(number_query):
 client = discord.Client()
 bot = commands.Bot(command_prefix='!')
 
-member_check = ''
-seat_number = 0
-screen_name = ''
-
-
-def set_globvar():
-    global member_check  # Needed to modify global copy of globvar
-    global seat_number
-    global screen_name
-
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -55,31 +45,50 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    if message.content.startswith('$hello'):
-        await message.channel.send('Hello! ' + str(message.author))
+    if message.content.startswith('$help'):
+        await message.channel.send("Declare your input channel: $in_ctx. \nDeclare your output channel: $out_ctx. \n"
+                                   "Declare user's new role: $new_role. ex: $new_role|EXAMPLE \nPurge output channel: "
+                                   "$purge")
 
+    if message.content.startswith('$in_ctx'):
+        globals()['Input_Channel'] = message.channel.id
+        await message.channel.send("This is now your input channel")
+
+    if message.content.startswith('$out_ctx'):
+        globals()['Output_Channel'] = message.channel.id
+        await message.channel.send("This is now your output channel")
+
+    if message.content.startswith('$new_role|'):
+        temp_str = message.content
+        temp_str = temp_str[10:]
+        globals()['New_Role'] = temp_str
+        # globals()['New_Role'] = discord.utils.get(guild.roles, name="moved")
+        await message.channel.send("{0} is now your user role".format(temp_str))
+
+    if message.content.startswith('$purge'):
+        channel_out = client.get_channel(globals()['Output_Channel'])
+        await message.channel.send("Starting the purge of $Output_Channel")
+        deleted = await channel_out.purge(limit=100)
+        await message.channel.send('Deleted {} message(s)'.format(len(deleted)))
 
     if message.content.startswith('0'):
+        channel_out = client.get_channel(globals()['Output_Channel'])
+
+        if message.channel == channel_out:
+            deleted = await message.delete()
+            await channel_out.send("Is this your output channel?")
+
         server = message.guild.members
-        guild = message.guild
         Bar_code = int(message.content)
         New_Name = (pull_csv(Bar_code))
         screen_name = New_Name[2]
         seat_number = New_Name[3]
         for member in server:
             if member.name == screen_name:
-                print(str(seat_number) + ':' + member.name)
-                print(member.roles)
-                print(member.guild_permissions)
-                print(member.nick)
-                await member.edit(nick=(seat_number + ":" + str(screen_name)))
-                role = discord.utils.get(member.guild.roles, name="moved")
+                await member.edit(nick=(seat_number + ":" + str(screen_name)))  # Editing Nick name for the server
+                role = discord.utils.get(member.guild.roles, name=globals()['New_Role'])   # Role to be added for specific channel name="moved"
                 await member.add_roles(role)
-                await message.delete()
-                await message.channel.send('@here  Welcome to the LAN ' + str(screen_name) + "!")
-
-
+                await channel_out.send("@here  Welcome to the Party {0}! You sit at {1}.".format(str(screen_name), str(seat_number)))
 
 
 client.run(TOKEN)
-
